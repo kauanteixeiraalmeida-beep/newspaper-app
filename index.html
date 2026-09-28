@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jornal Digital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-mark">J</div>
+        <div>
+          <p class="eyebrow">Portal de publicações</p>
+          <h1>Jornal Digital</h1>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a href="#admin-panel">Painel</a>
+        <a href="#publicacoes">Publicações</a>
+      </nav>
+    </header>
+
+    <main class="shell">
+      <section id="admin-panel" class="panel admin-panel">
+        <div class="panel-heading">
+          <p class="eyebrow">Administração</p>
+          <h2>Nova edição do jornal</h2>
+        </div>
+
+        <form id="issueForm" class="issue-form">
+          <div class="field-group two-columns">
+            <label>
+              Título da edição
+              <input id="title" name="title" type="text" placeholder="Ex: Jornal de Vargem Grande" required />
+            </label>
+            <label>
+              Edição nº
+              <input id="edition" name="edition" type="text" placeholder="Ex: 204" required />
+            </label>
+          </div>
+
+          <div class="field-group two-columns">
+            <label>
+              Data
+              <input id="date" name="date" type="date" required />
+            </label>
+            <label>
+              Categoria
+              <select id="category" name="category">
+                <option value="Local">Local</option>
+                <option value="Regional">Regional</option>
+                <option value="Esportes">Esportes</option>
+                <option value="Política">Política</option>
+                <option value="Cultura">Cultura</option>
+                <option value="Educação">Educação</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            Resumo
+            <textarea id="summary" name="summary" rows="4" placeholder="Descreva a edição, destaques e principais matérias..." required></textarea>
+          </label>
+
+          <div class="upload-box">
+            <label class="upload-label" for="fileInput">Escolher arquivo do jornal</label>
+            <input id="fileInput" type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.odt,.ppt,.pptx" />
+            <small>Formatos aceitos: PDF, imagem, Word, LibreOffice e apresentação.</small>
+          </div>
+
+          <div id="filePreview" class="file-preview empty">
+            <span>Nenhum arquivo selecionado</span>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="primary-btn">Publicar edição</button>
+            <button type="button" id="resetDemo" class="secondary-btn">Limpar demo</button>
+          </div>
+        </form>
+      </section>
+
+      <aside id="publicacoes" class="panel public-panel">
+        <div class="panel-heading inline-heading">
+          <div>
+            <p class="eyebrow">Edições</p>
+            <h2>Publicações recentes</h2>
+          </div>
+        </div>
+
+        <div id="issueList" class="issue-list" aria-live="polite"></div>
+      </aside>
+    </main>
+
+    <section id="modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-overlay" data-close="true"></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button id="closeModal" class="close-btn" aria-label="Fechar modal">×</button>
+        <div id="modalContent"></div>
+      </div>
+    </section>
+
+    <script src="app.js"></script>
+  </body>
+</html>
