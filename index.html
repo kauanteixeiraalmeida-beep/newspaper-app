@@ -10,24 +10,96 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand-wrap"><div class="brand-mark">J</div><div><p class="eyebrow">Portal de publicações</p><h1>Jornal Digital</h1></div></div>
-    <button id="adminBtn" class="admin-btn">Admin</button>
-  </header>
-  <main class="shell"><section class="panel public-panel"><div class="panel-heading"><p class="eyebrow">Edições</p><h2>Publicações recentes</h2></div><div id="issueList" class="issue-list" aria-live="polite"></div></section></main>
+  <!-- MODAL DE LOGIN -->
+  <div id="loginModal" class="modal" aria-hidden="false">
+    <div class="modal-overlay"></div>
+    <div class="modal-card login-card" role="dialog" aria-modal="true">
+      <div class="panel-heading"><p class="eyebrow">Bem-vindo</p><h2>Jornal Digital</h2></div>
+      <form id="loginForm" class="login-form">
+        <label>Nome de usuário<input id="username" type="text" placeholder="Digite seu nome" required /></label>
+        <label>Tipo de acesso<select id="userRole">
+          <option value="leitor">Leitor</option>
+          <option value="jornalista">Jornalista</option>
+          <option value="admin">Administrador</option>
+        </select></label>
+        <button type="submit" class="primary-btn">Entrar</button>
+      </form>
+    </div>
+  </div>
 
-  <div id="adminModal" class="modal hidden" aria-hidden="true"><div class="modal-overlay" data-close="admin"></div><div class="modal-card admin-modal" role="dialog" aria-modal="true"><button id="closeAdminModal" class="close-btn" aria-label="Fechar">×</button><div class="panel-heading"><p class="eyebrow">Administração</p><h2>Nova edição do jornal</h2></div>
-    <form id="issueForm" class="issue-form">
-      <div class="field-group"><label>Título da edição<input id="title" type="text" placeholder="Ex: Jornal de Vargem Grande" required /></label><label>Edição nº<input id="edition" type="text" placeholder="Ex: 204" required /></label></div>
-      <div class="field-group"><label>Data<input id="date" type="date" required /></label><label>Categoria<select id="category"><option>Local</option><option>Regional</option><option>Esportes</option><option>Política</option><option>Cultura</option><option>Educação</option></select></label></div>
-      <label>Resumo<textarea id="summary" rows="3" placeholder="Descreva os destaques da edição..."></textarea></label>
-      <div class="upload-box"><label class="upload-label" for="fileInput">Escolher imagens, vídeos ou PDF</label><input id="fileInput" type="file" multiple accept="image/*,video/*,application/pdf,.doc,.docx,.odt" /><small>Você pode selecionar mais de um arquivo. A imagem pode ser a capa e o PDF o jornal completo.</small></div>
-      <div id="filePreview" class="file-preview empty">Nenhum arquivo selecionado</div>
-      <div class="actions"><button type="submit" class="primary-btn">Publicar edição</button><button type="button" id="resetDemo" class="secondary-btn">Limpar demo</button></div>
-    </form>
-  </div></div>
+  <!-- APP PRINCIPAL -->
+  <div id="appContainer" class="app-container hidden">
+    <header class="topbar">
+      <div class="brand-wrap"><div class="brand-mark">J</div><div><p class="eyebrow">Portal de publicações</p><h1>Jornal Digital</h1></div></div>
+      <div class="top-actions">
+        <button id="settingsBtn" class="header-btn" title="Configurações">⚙️</button>
+        <button id="logoutBtn" class="header-btn" title="Sair">Sair</button>
+      </div>
+    </header>
 
-  <div id="viewModal" class="modal hidden" aria-hidden="true"><div class="modal-overlay" data-close="view"></div><div class="modal-card" role="dialog" aria-modal="true"><button id="closeViewModal" class="close-btn" aria-label="Fechar">×</button><div id="modalContent"></div></div></div>
+    <!-- CARROSSEL -->
+    <div class="carousel-section">
+      <div class="carousel-wrapper">
+        <button id="prevCarousel" class="carousel-btn prev-btn" aria-label="Anterior">‹</button>
+        <div id="carousel" class="carousel"></div>
+        <button id="nextCarousel" class="carousel-btn next-btn" aria-label="Próximo">›</button>
+      </div>
+      <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+
+    <main class="shell">
+      <!-- BOTÃO PUBLICAR (SÓ JORNALISTA/ADMIN) -->
+      <section id="publishSection" class="panel publish-section hidden">
+        <button id="publishBtn" class="primary-btn">+ Nova edição</button>
+      </section>
+
+      <!-- LISTA DE EDIÇÕES -->
+      <section class="panel public-panel">
+        <div class="panel-heading"><p class="eyebrow">Todas as edições</p><h2>Publicações</h2></div>
+        <div id="issueList" class="issue-list" aria-live="polite"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL DE PUBLICAÇÃO -->
+  <div id="publishModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-overlay" data-close="publish"></div>
+    <div class="modal-card admin-modal" role="dialog" aria-modal="true">
+      <button id="closePublishModal" class="close-btn" aria-label="Fechar">×</button>
+      <div class="panel-heading"><p class="eyebrow">Publicação</p><h2>Nova edição do jornal</h2></div>
+      <form id="issueForm" class="issue-form">
+        <div class="field-group"><label>Título da edição<input id="title" type="text" placeholder="Ex: Jornal de Vargem Grande" required /></label><label>Edição nº<input id="edition" type="text" placeholder="Ex: 204" required /></label></div>
+        <div class="field-group"><label>Data<input id="date" type="date" required /></label><label>Categoria<select id="category"><option>Local</option><option>Regional</option><option>Esportes</option><option>Política</option><option>Cultura</option><option>Educação</option></select></label></div>
+        <label>Resumo<textarea id="summary" rows="3" placeholder="Descreva os destaques da edição..."></textarea></label>
+        <div class="upload-box"><label class="upload-label" for="fileInput">Escolher imagens, vídeos ou PDF</label><input id="fileInput" type="file" multiple accept="image/*,video/*,application/pdf,.doc,.docx,.odt" /><small>Selecione um ou más arquivos.</small></div>
+        <div id="filePreview" class="file-preview empty">Nenhum arquivo selecionado</div>
+        <div class="actions"><button type="submit" class="primary-btn">Publicar edição</button><button type="button" id="resetDemo" class="secondary-btn">Carregar demo</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE VISUALIZAÇÃO -->
+  <div id="viewModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-overlay" data-close="view"></div>
+    <div class="modal-card" role="dialog" aria-modal="true"><button id="closeViewModal" class="close-btn" aria-label="Fechar">×</button><div id="modalContent"></div></div>
+  </div>
+
+  <!-- MODAL DE CONFIGURAÇÕES -->
+  <div id="settingsModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-overlay" data-close="settings"></div>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <button id="closeSettingsModal" class="close-btn" aria-label="Fechar">×</button>
+      <div class="panel-heading"><p class="eyebrow">Minha conta</p><h2>Configurações</h2></div>
+      <div class="settings-content">
+        <div class="settings-row"><label>Usuário:</label><span id="settingsUsername"></span></div>
+        <div class="settings-row"><label>Tipo de acesso:</label><span id="settingsRole"></span></div>
+        <div class="settings-row"><label>Tema:</label><select id="themeSelect"><option value="light">Claro</option><option value="dark">Escuro</option></select></div>
+        <div class="settings-row"><label>Tamanho da fonte:</label><select id="fontSizeSelect"><option value="small">Pequeno</option><option value="medium">Médio</option><option value="large">Grande</option></select></div>
+        <button id="changeUserBtn" class="primary-btn" style="margin-top: 1rem;">Trocar de usuário</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
