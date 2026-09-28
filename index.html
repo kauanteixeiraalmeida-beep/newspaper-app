@@ -14,32 +14,20 @@
     <div class="brand-wrap"><div class="brand-mark">J</div><div><p class="eyebrow">Portal de publicações</p><h1>Jornal Digital</h1></div></div>
     <button id="adminBtn" class="admin-btn">Admin</button>
   </header>
+  <main class="shell"><section class="panel public-panel"><div class="panel-heading"><p class="eyebrow">Edições</p><h2>Publicações recentes</h2></div><div id="issueList" class="issue-list" aria-live="polite"></div></section></main>
 
-  <main class="shell"><section id="publicacoes" class="panel public-panel full-width">
-    <div class="panel-heading"><p class="eyebrow">Edições</p><h2>Publicações recentes</h2></div>
-    <div id="issueList" class="issue-list" aria-live="polite"></div>
-  </section></main>
+  <div id="adminModal" class="modal hidden" aria-hidden="true"><div class="modal-overlay" data-close="admin"></div><div class="modal-card admin-modal" role="dialog" aria-modal="true"><button id="closeAdminModal" class="close-btn" aria-label="Fechar">×</button><div class="panel-heading"><p class="eyebrow">Administração</p><h2>Nova edição do jornal</h2></div>
+    <form id="issueForm" class="issue-form">
+      <div class="field-group"><label>Título da edição<input id="title" type="text" placeholder="Ex: Jornal de Vargem Grande" required /></label><label>Edição nº<input id="edition" type="text" placeholder="Ex: 204" required /></label></div>
+      <div class="field-group"><label>Data<input id="date" type="date" required /></label><label>Categoria<select id="category"><option>Local</option><option>Regional</option><option>Esportes</option><option>Política</option><option>Cultura</option><option>Educação</option></select></label></div>
+      <label>Resumo<textarea id="summary" rows="3" placeholder="Descreva os destaques da edição..."></textarea></label>
+      <div class="upload-box"><label class="upload-label" for="fileInput">Escolher imagens, vídeos ou PDF</label><input id="fileInput" type="file" multiple accept="image/*,video/*,application/pdf,.doc,.docx,.odt" /><small>Você pode selecionar mais de um arquivo. A imagem pode ser a capa e o PDF o jornal completo.</small></div>
+      <div id="filePreview" class="file-preview empty">Nenhum arquivo selecionado</div>
+      <div class="actions"><button type="submit" class="primary-btn">Publicar edição</button><button type="button" id="resetDemo" class="secondary-btn">Limpar demo</button></div>
+    </form>
+  </div></div>
 
-  <div id="adminModal" class="modal hidden" aria-hidden="true">
-    <div class="modal-overlay" data-close="admin"></div>
-    <div class="modal-card admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
-      <button id="closeAdminModal" class="close-btn" aria-label="Fechar">×</button>
-      <div class="panel-heading"><p class="eyebrow">Administração</p><h2 id="adminTitle">Nova edição do jornal</h2></div>
-      <form id="issueForm" class="issue-form">
-        <div class="field-group"><label>Título da edição<input id="title" type="text" placeholder="Ex: Jornal de Vargem Grande" required /></label><label>Edição nº<input id="edition" type="text" placeholder="Ex: 204" required /></label></div>
-        <div class="field-group"><label>Data<input id="date" type="date" required /></label><label>Categoria<select id="category"><option>Local</option><option>Regional</option><option>Esportes</option><option>Política</option><option>Cultura</option><option>Educação</option></select></label></div>
-        <label>Resumo<textarea id="summary" rows="3" placeholder="Descreva os destaques da edição..."></textarea></label>
-        <div class="upload-box"><label class="upload-label" for="fileInput">Escolher imagem, vídeo ou PDF</label><input id="fileInput" type="file" accept="image/*,video/*,application/pdf,.doc,.docx,.odt" /><small>Você pode publicar o jornal como foto/imagem, vídeo ou PDF.</small></div>
-        <div id="filePreview" class="file-preview empty">Nenhum arquivo selecionado</div>
-        <div class="actions"><button type="submit" class="primary-btn">Publicar edição</button><button type="button" id="resetDemo" class="secondary-btn">Limpar demo</button></div>
-      </form>
-    </div>
-  </div>
-
-  <div id="viewModal" class="modal hidden" aria-hidden="true">
-    <div class="modal-overlay" data-close="view"></div>
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button id="closeViewModal" class="close-btn" aria-label="Fechar">×</button><div id="modalContent"></div></div>
-  </div>
+  <div id="viewModal" class="modal hidden" aria-hidden="true"><div class="modal-overlay" data-close="view"></div><div class="modal-card" role="dialog" aria-modal="true"><button id="closeViewModal" class="close-btn" aria-label="Fechar">×</button><div id="modalContent"></div></div></div>
   <script src="app.js"></script>
 </body>
 </html>
