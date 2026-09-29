@@ -73,6 +73,8 @@ let issues = [];
 let currentUser = null;
 let carouselIndex = 0;
 let selectedFiles = [];
+let currentCategory = 'Todos';
+let currentSearch = '';
 
 function getUsers() {
   return JSON.parse(localStorage.getItem(KEY_USERS) || '[]');
@@ -145,11 +147,37 @@ function canPublish() {
   return currentUser && (currentUser.role === 'jornalista' || currentUser.role === 'admin');
 }
 
+function getFilteredIssues() {
+  const list = [...issues];
+  return list.filter((issue) => {
+    const matchesCategory = currentCategory === 'Todos' || issue.category === currentCategory;
+    const haystack = `${issue.title} ${issue.summary} ${issue.category} ${issue.edition}`.toLowerCase();
+    const matchesSearch = !currentSearch || haystack.includes(currentSearch.toLowerCase());
+    return matchesCategory && matchesSearch;
+  }).reverse();
+}
+
+function renderCategoryFilters() {
+  const categories = ['Todos', ...new Set(issues.map((issue) => issue.category))];
+  $('categoryFilters').innerHTML = categories.map((category) => `
+    <button type="button" class="filter-btn ${category === currentCategory ? 'active' : ''}" data-category="${category}">${category}</button>
+  `).join('');
+
+  document.querySelectorAll('.filter-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      currentCategory = button.dataset.category;
+      renderCategoryFilters();
+      renderIssueList();
+      renderCarousel();
+    });
+  });
+}
+
 function renderIssueList() {
-  const items = [...issues].reverse();
+  const items = getFilteredIssues();
 
   if (!items.length) {
-    $('issueList').innerHTML = '<div class="empty-state">Nenhuma edição publicada ainda.</div>';
+    $('issueList').innerHTML = '<div class="empty-state">Nenhuma edição encontrada.</div>';
     return;
   }
 
@@ -192,14 +220,16 @@ function getCoverFile(issue) {
 }
 
 function renderCarousel() {
-  const list = [...issues].reverse().slice(0, 5);
+  const list = getFilteredIssues().slice(0, 5);
   if (!list.length) {
     $('carousel').innerHTML = '<div class="empty-state">Nenhuma edição na home.</div>';
     $('carouselDots').innerHTML = '';
     return;
   }
 
-  const current = list[carouselIndex % list.length];
+  if (carouselIndex >= list.length) carouselIndex = 0;
+
+  const current = list[carouselIndex];
   const cover = getCoverFile(current);
 
   $('carousel').innerHTML = `
@@ -219,7 +249,7 @@ function renderCarousel() {
   `;
 
   $('carouselDots').innerHTML = list.map((_, index) => {
-    const active = index === (carouselIndex % list.length) ? 'active' : '';
+    const active = index === carouselIndex ? 'active' : '';
     return `<div class="carousel-dot ${active}" data-index="${index}"></div>`;
   }).join('');
 
@@ -229,6 +259,11 @@ function renderCarousel() {
       renderCarousel();
     });
   });
+
+  const hero = list[0];
+  $('heroTitle').textContent = hero.title;
+  $('heroSummary').textContent = hero.summary || 'Confira as principais reportagens e edições recentes.';
+  $('heroReadBtn').onclick = () => openIssueModal(hero);
 }
 
 function openIssueModal(issue) {
@@ -262,6 +297,7 @@ function openIssueModal(issue) {
         ` : ''}
 
         <div class="modal-actions">
+          <button type="button" class="primary-btn" id="readFullBtn">Ler em tela cheia</button>
           ${canPublish() ? '<button type="button" id="deleteIssueBtn" class="secondary-btn">Excluir</button>' : ''}
         </div>
       </div>
@@ -277,6 +313,18 @@ function openIssueModal(issue) {
     });
   });
 
+  const readFullBtn = $('readFullBtn');
+  if (readFullBtn) {
+    readFullBtn.addEventListener('click', () => {
+      const aspect = $('modalContent').querySelector('.modal-preview');
+      if (aspect) {
+        aspect.style.minHeight = '70vh';
+        aspect.style.height = '70vh';
+        aspect.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+
   const deleteBtn = $('deleteIssueBtn');
   if (deleteBtn) {
     deleteBtn.addEventListener('click', () => {
@@ -285,6 +333,7 @@ function openIssueModal(issue) {
       issues = updated;
       saveIssues(issues);
       closeModal('view');
+      renderCategoryFilters();
       renderIssueList();
       renderCarousel();
     });
@@ -425,6 +474,12 @@ function bindGlobalEvents() {
   $('closeViewModal').addEventListener('click', () => closeModal('view'));
   $('fileInput').addEventListener('change', handleFileSelection);
 
+  $('searchInput').addEventListener('input', (event) => {
+    currentSearch = event.target.value.trim();
+    renderIssueList();
+    renderCarousel();
+  });
+
   document.querySelectorAll('.modal-overlay').forEach((overlay) => {
     overlay.addEventListener('click', () => {
       const modalType = overlay.dataset.close;
@@ -435,14 +490,14 @@ function bindGlobalEvents() {
   });
 
   $('prevCarousel').addEventListener('click', () => {
-    const total = Math.min(issues.length, 5);
+    const total = Math.min(getFilteredIssues().length, 5);
     if (!total) return;
     carouselIndex = (carouselIndex - 1 + total) % total;
     renderCarousel();
   });
 
   $('nextCarousel').addEventListener('click', () => {
-    const total = Math.min(issues.length, 5);
+    const total = Math.min(getFilteredIssues().length, 5);
     if (!total) return;
     carouselIndex = (carouselIndex + 1) % total;
     renderCarousel();
@@ -479,6 +534,10 @@ function bindGlobalEvents() {
 
     issues.push(newIssue);
     saveIssues(issues);
+    currentCategory = 'Todos';
+    currentSearch = '';
+    $('searchInput').value = '';
+    renderCategoryFilters();
     renderIssueList();
     renderCarousel();
     $('issueForm').reset();
@@ -490,6 +549,10 @@ function bindGlobalEvents() {
   $('resetDemo').addEventListener('click', () => {
     issues = [...demoIssues];
     saveIssues(issues);
+    currentCategory = 'Todos';
+    currentSearch = '';
+    $('searchInput').value = '';
+    renderCategoryFilters();
     renderIssueList();
     renderCarousel();
     $('issueForm').reset();
@@ -529,6 +592,7 @@ window.addEventListener('load', () => {
   bindGlobalEvents();
   bindSettingsEvents();
   updatePublishControls();
+  renderCategoryFilters();
   renderIssueList();
   renderCarousel();
   renderSelectedFiles();

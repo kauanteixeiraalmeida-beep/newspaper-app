@@ -54,6 +54,15 @@
         </div>
       </header>
 
+      <section class="hero-section">
+        <div class="hero-copy">
+          <p class="eyebrow">Edição em destaque</p>
+          <h2 id="heroTitle">Jornal Digital</h2>
+          <p id="heroSummary">Confira as principais reportagens e edições recentes.</p>
+          <button id="heroReadBtn" class="primary-btn">Ler agora</button>
+        </div>
+      </section>
+
       <section class="carousel-section">
         <div class="carousel-wrapper">
           <button id="prevCarousel" class="carousel-btn" aria-label="Anterior">‹</button>
@@ -61,6 +70,15 @@
           <button id="nextCarousel" class="carousel-btn" aria-label="Próximo">›</button>
         </div>
         <div id="carouselDots" class="carousel-dots"></div>
+      </section>
+
+      <section class="toolbar-section panel">
+        <div class="toolbar-row">
+          <div class="search-box">
+            <input id="searchInput" type="search" placeholder="Buscar edição, tema ou categoria..." />
+          </div>
+          <div id="categoryFilters" class="category-filters"></div>
+        </div>
       </section>
 
       <main class="shell">
@@ -141,7 +159,7 @@
 
     <div id="viewModal" class="modal hidden" aria-hidden="true">
       <div class="modal-overlay" data-close="view"></div>
-      <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-card view-card" role="dialog" aria-modal="true">
         <button id="closeViewModal" class="close-btn" aria-label="Fechar">×</button>
         <div id="modalContent"></div>
       </div>

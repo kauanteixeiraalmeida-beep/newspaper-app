@@ -126,6 +126,32 @@ h1 {
   border: 1px solid var(--line);
 }
 
+.hero-section {
+  background:
+    linear-gradient(135deg, rgba(161, 29, 29, 0.84), rgba(25, 17, 12, 0.65)),
+    url('https://images.unsplash.com/photo-1504711331083-9c897f8d2f1c?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+  color: white;
+  padding: clamp(2rem, 5vw, 5rem) clamp(1rem, 3vw, 3rem);
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+}
+
+.hero-copy {
+  max-width: 520px;
+}
+
+.hero-copy h2 {
+  font-size: clamp(2rem, 4vw, 4rem);
+  margin: 0.5rem 0 0.75rem;
+}
+
+.hero-copy p {
+  margin: 0 0 1rem;
+  line-height: 1.6;
+  max-width: 45ch;
+}
+
 .carousel-section {
   padding: 1.8rem clamp(1rem, 3vw, 3rem);
   background: rgba(161, 29, 29, 0.05);
@@ -214,6 +240,48 @@ h1 {
   width: 28px;
   border-radius: 999px;
   background: var(--brand);
+}
+
+.toolbar-section {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 1.5rem auto 0;
+}
+
+.toolbar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-box input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.filter-btn {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  padding: 0.6rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.filter-btn.active {
+  background: var(--brand);
+  color: white;
+  border-color: var(--brand);
 }
 
 .shell {
@@ -374,6 +442,10 @@ body.dark-mode .modal-card {
   overflow: auto;
 }
 
+.view-card {
+  width: min(1080px, calc(100% - 1rem));
+}
+
 .admin-modal {
   width: min(700px, calc(100% - 2rem));
 }
@@ -469,7 +541,7 @@ small {
 
 .modal-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 1.2rem;
   margin-top: 1rem;
 }
@@ -578,5 +650,9 @@ small {
   .carousel-btn {
     width: 40px;
     height: 40px;
+  }
+
+  .hero-copy h2 {
+    font-size: 2.2rem;
   }
 }
