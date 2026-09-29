@@ -1,98 +1,543 @@
-const KEY_USERS='jornal-users',KEY_PREFS='jornal-prefs',KEY_ISSUES='jornal-issues',KEY_CURRENT='jornal-current',DB='jornal-db',STORE='issues';
-const $=id=>document.getElementById(id);
-let currentUser=null,issues=[],carouselIndex=0;
+const KEY_USERS = 'jornal-users';
+const KEY_PREFS = 'jornal-prefs';
+const KEY_CURRENT = 'jornal-current';
+const KEY_ISSUES = 'jornal-issues';
 
-const demo=[{id:'demo-1',title:'Jornal de Vargem Grande',edition:'204',date:'2026-09-28',category:'Local',summary:'Edição especial com destaques da feira, eventos culturais e entrevistas com moradores locais.',author:'Admin',files:[{name:'capa.svg',type:'image/svg+xml',data:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#f2e7d3"/><text x="400" y="200" text-anchor="middle" font-family="Georgia" font-size="72">JORNAL</text><text x="400" y="280" text-anchor="middle" font-family="Georgia" font-size="40" fill="#8b1e1e">VARGEM GRANDE</text><text x="400" y="380" text-anchor="middle" font-family="Arial" font-size="24">Edição 204 - 28 de Setembro</text></svg>')}]},{id:'demo-2',title:'Destaque Regional',edition:'203',date:'2026-09-21',category:'Regional',summary:'Coberta completa dos últimos eventos regionais e notícias importantes.',author:'Admin',files:[{name:'capa2.svg',type:'image/svg+xml',data:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#d4e3d9"/><text x="400" y="250" text-anchor="middle" font-family="Georgia" font-size="60" fill="#2d5016">DESTAQUE REGIONAL</text><text x="400" y="350" text-anchor="middle" font-size="28">Cobertura completa de eventos</text></svg>')}]},{id:'demo-3',title:'Esportes em Foco',edition:'202',date:'2026-09-14',category:'Esportes',summary:'Campeonatos, resultados e análises dos principais esportes.',author:'Admin',files:[{name:'capa3.svg',type:'image/svg+xml',data:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#e3d4b9"/><text x="400" y="200" text-anchor="middle" font-family="Georgia" font-size="70" fill="#c41e1e">ESPORTES</text><text x="400" y="320" text-anchor="middle" font-family="Arial" font-size="32">Edição 202</text></svg>')}]};
+const demoIssues = [
+  {
+    id: 'demo-1',
+    title: 'Jornal de Vargem Grande',
+    edition: '204',
+    date: '2026-09-28',
+    category: 'Local',
+    summary: 'Edição especial com destaques da feira, eventos culturais e entrevistas com moradores locais.',
+    files: [{
+      name: 'capa-jornal.svg',
+      type: 'image/svg+xml',
+      data: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700">
+          <rect width="1000" height="700" fill="#f2e7d3"/>
+          <rect x="70" y="70" width="860" height="560" fill="#fffaf3" stroke="#222" stroke-width="4"/>
+          <text x="500" y="230" text-anchor="middle" font-family="Georgia" font-size="72" fill="#1a1a1a">JORNAL</text>
+          <text x="500" y="310" text-anchor="middle" font-family="Georgia" font-size="42" fill="#8b1e1e">VARGEM GRANDE</text>
+          <line x1="180" y1="360" x2="820" y2="360" stroke="#222" stroke-width="3"/>
+          <text x="500" y="450" text-anchor="middle" font-family="Arial" font-size="26">ED. 204 • 28 DE SETEMBRO</text>
+          <text x="500" y="520" text-anchor="middle" font-family="Arial" font-size="22">Feira local • Cultura • Esportes</text>
+        </svg>
+      `)
+    }]
+  },
+  {
+    id: 'demo-2',
+    title: 'Destaque Regional',
+    edition: '203',
+    date: '2026-09-21',
+    category: 'Regional',
+    summary: 'Cobertura completa dos eventos regionais e discussão sobre desenvolvimento local.',
+    files: [{
+      name: 'destaque-regional.svg',
+      type: 'image/svg+xml',
+      data: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700">
+          <rect width="1000" height="700" fill="#d9e8dc"/>
+          <text x="500" y="260" text-anchor="middle" font-family="Georgia" font-size="62" fill="#214c1c">DESTAQUE REGIONAL</text>
+          <text x="500" y="380" text-anchor="middle" font-family="Arial" font-size="28">Eventos, pessoas e história do município</text>
+        </svg>
+      `)
+    }]
+  },
+  {
+    id: 'demo-3',
+    title: 'Esportes em Foco',
+    edition: '202',
+    date: '2026-09-14',
+    category: 'Esportes',
+    summary: 'Acompanhe jogos, mobilidade esportiva e destaques da semana.',
+    files: [{
+      name: 'esportes.svg',
+      type: 'image/svg+xml',
+      data: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700">
+          <rect width="1000" height="700" fill="#eadcc0"/>
+          <text x="500" y="250" text-anchor="middle" font-family="Georgia" font-size="70" fill="#b82929">ESPORTES</text>
+          <text x="500" y="380" text-anchor="middle" font-family="Arial" font-size="28">Resultados, análise e destaques da semana</text>
+        </svg>
+      `)
+    }]
+  }
+];
 
-async function openDb(){return new Promise((r,e)=>{const x=indexedDB.open(DB,1);x.onupgradeneeded=()=>x.result.createObjectStore(STORE,{keyPath:'id'});x.onsuccess=()=>r(x.result);x.onerror=()=>e(x.error)})}
-async function getAll(){const db=await openDb();return new Promise((r,e)=>{const x=db.transaction(STORE,'readonly').objectStore(STORE).getAll();x.onsuccess=()=>r(x.result);x.onerror=()=>e(x.error)})}
-async function put(item){const db=await openDb();return new Promise((r,e)=>{const x=db.transaction(STORE,'readwrite').objectStore(STORE).put(item);x.onsuccess=r;x.onerror=()=>e(x.error)})}
-async function remove(id){const db=await openDb();return new Promise((r,e)=>{const x=db.transaction(STORE,'readwrite').objectStore(STORE).delete(id);x.onsuccess=r;x.onerror=()=>e(x.error)})}
+const $ = (id) => document.getElementById(id);
 
-function loadUsers(){const x=JSON.parse(localStorage.getItem(KEY_USERS)||'[]');return x.length?x:[{id:1,username:'Admin Demo',role:'admin'},{id:2,username:'Jornalista Demo',role:'jornalista'},{id:3,username:'Leitor Demo',role:'leitor'}]}
-function saveUsers(users){localStorage.setItem(KEY_USERS,JSON.stringify(users))}
-function loadPrefs(){return JSON.parse(localStorage.getItem(KEY_PREFS)||'{"theme":"light","fontSize":"medium"}')}
-function savePrefs(prefs){localStorage.setItem(KEY_PREFS,JSON.stringify(prefs))}
-function loadCurrentUser(){return JSON.parse(localStorage.getItem(KEY_CURRENT)||'null')}
-function saveCurrentUser(user){localStorage.setItem(KEY_CURRENT,JSON.stringify(user))}
+let issues = [];
+let currentUser = null;
+let carouselIndex = 0;
+let selectedFiles = [];
 
-function applyTheme(prefs){document.body.classList.remove('dark-mode');document.body.classList.remove('font-small','font-medium','font-large');if(prefs.theme==='dark')document.body.classList.add('dark-mode');if(prefs.fontSize==='small')document.body.classList.add('font-small');if(prefs.fontSize==='large')document.body.classList.add('font-large')}
-
-function showLoginModal(){$('loginModal').classList.remove('hidden');$('appContainer').classList.add('hidden')}
-function hideLoginModal(){$('loginModal').classList.add('hidden');$('appContainer').classList.remove('hidden')}
-
-$('loginForm').onsubmit=(e)=>{e.preventDefault();const username=$('username').value.trim();const role=$('userRole').value;if(!username)return;const users=loadUsers();let user=users.find(u=>u.username===username);if(!user){user={id:Date.now(),username,role};users.push(user);saveUsers(users)}else{user.role=role}currentUser=user;saveCurrentUser(user);$('username').value='';hideLoginModal();updateUI();renderIssues()};
-
-function logout(){currentUser=null;localStorage.removeItem(KEY_CURRENT);showLoginModal()}
-
-$('logoutBtn').onclick=logout;
-$('settingsBtn').onclick=()=>{const prefs=loadPrefs();$('settingsUsername').textContent=currentUser.username;$('settingsRole').textContent=currentUser.role==='admin'?'Administrador':currentUser.role==='jornalista'?'Jornalista':'Leitor';$('themeSelect').value=prefs.theme;$('fontSizeSelect').value=prefs.fontSize;$('settingsModal').classList.remove('hidden')};
-
-$('themeSelect').onchange=$('fontSizeSelect').onchange=(e)=>{const prefs=loadPrefs();prefs.theme=$('themeSelect').value;prefs.fontSize=$('fontSizeSelect').value;savePrefs(prefs);applyTheme(prefs)};
-
-$('changeUserBtn').onclick=()=>{$('settingsModal').classList.add('hidden');logout()};
-
-function updateUI(){
-  const isJournalist=currentUser.role==='jornalista'||currentUser.role==='admin';
-  $('publishSection').classList.toggle('hidden',!isJournalist);
-  if(isJournalist)$('publishBtn').onclick=()=>$('publishModal').classList.remove('hidden');
+function getUsers() {
+  return JSON.parse(localStorage.getItem(KEY_USERS) || '[]');
 }
 
-function niceDate(v){return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'long',year:'numeric'}).format(new Date(v+'T00:00:00'))}
-
-function media(file,cls=''){if(!file?.data)return '<div class="empty-state">Sem arquivo</div>';if((file.type||'').startsWith('image/'))return `<img class="${cls}" src="${file.data}" alt="Imagem">`;
-if((file.type||'').startsWith('video/'))return `<video class="${cls}" src="${file.data}" controls></video>`;
-if(file.type==='application/pdf'||file.name?.toLowerCase().endsWith('.pdf'))return `<iframe class="${cls}" src="${file.data}"></iframe>`;
-return `<div class="empty-state"><strong>${file.name}</strong></div>`}
-
-async function renderCarousel(){
-  const recent=issues.slice().reverse().slice(0,5);
-  if(!recent.length)return;
-  const item=recent[carouselIndex];
-  const files=item.files||[];
-  const cover=files.find(f=>(f.type||'').startsWith('image/'))||files[0];
-  $('carousel').innerHTML=cover?media(cover):'<div class="carousel-item"></div>';
-  $('carouselDots').innerHTML=recent.map((_,i)=>`<div class="carousel-dot ${i===carouselIndex?'active':''}" data-idx="${i}"></div>`).join('');
-  document.querySelectorAll('.carousel-dot').forEach(d=>d.onclick=()=>{carouselIndex=Number(d.dataset.idx);renderCarousel()});
+function saveUsers(users) {
+  localStorage.setItem(KEY_USERS, JSON.stringify(users));
 }
 
-$('prevCarousel').onclick=()=>{const recent=issues.slice().reverse().slice(0,5);carouselIndex=(carouselIndex-1+recent.length)%recent.length;renderCarousel()};
-$('nextCarousel').onclick=()=>{const recent=issues.slice().reverse().slice(0,5);carouselIndex=(carouselIndex+1)%recent.length;renderCarousel()};
-
-async function renderIssues(){
-  const items=issues.slice().reverse();
-  if(!items.length){$('issueList').innerHTML='<div class="empty-state">Nenhuma edição publicada.</div>';return}
-  $('issueList').innerHTML=items.map(i=>{const files=i.files||[];const cover=files.find(f=>(f.type||'').startsWith('image/'));return `<article class="issue-card" data-id="${i.id}">${cover?media(cover,'issue-cover'):''}<div class="issue-header"><span class="issue-tag">${i.category}</span><span class="issue-meta">Ed. ${i.edition}</span></div><div><h3>${i.title}</h3><div class="issue-meta">${niceDate(i.date)}</div></div><p class="issue-summary">${i.summary||''}</p><div class="issue-actions"><button class="action-btn" data-view="${i.id}">Abrir</button></div></article>`}).join('');
-  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>openView(items.find(i=>i.id===b.dataset.view)));
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem(KEY_CURRENT) || 'null');
 }
 
-function openView(issue){
-  const files=issue.files||[];
+function saveCurrentUser(user) {
+  localStorage.setItem(KEY_CURRENT, JSON.stringify(user));
+}
+
+function getPrefs() {
+  return JSON.parse(localStorage.getItem(KEY_PREFS) || '{"theme":"light","fontSize":"medium"}');
+}
+
+function savePrefs(prefs) {
+  localStorage.setItem(KEY_PREFS, JSON.stringify(prefs));
+}
+
+function getIssues() {
+  return JSON.parse(localStorage.getItem(KEY_ISSUES) || '[]');
+}
+
+function saveIssues(items) {
+  localStorage.setItem(KEY_ISSUES, JSON.stringify(items));
+}
+
+function applyAppearance() {
+  const prefs = getPrefs();
+  document.body.classList.toggle('dark-mode', prefs.theme === 'dark');
+  document.body.classList.remove('font-small', 'font-large');
+  if (prefs.fontSize === 'small') document.body.classList.add('font-small');
+  if (prefs.fontSize === 'large') document.body.classList.add('font-large');
+}
+
+function showLoginModal() {
+  $('loginModal').classList.remove('hidden');
+  $('appContainer').classList.add('hidden');
+}
+
+function hideLoginModal() {
+  $('loginModal').classList.add('hidden');
+  $('appContainer').classList.remove('hidden');
+}
+
+function setUpInitialData() {
+  if (!getIssues().length) {
+    saveIssues(demoIssues);
+  }
+  issues = getIssues();
+
+  const storedUser = getCurrentUser();
+  if (storedUser) {
+    currentUser = storedUser;
+    hideLoginModal();
+  } else {
+    showLoginModal();
+  }
+
+  applyAppearance();
+}
+
+function canPublish() {
+  return currentUser && (currentUser.role === 'jornalista' || currentUser.role === 'admin');
+}
+
+function renderIssueList() {
+  const items = [...issues].reverse();
+
+  if (!items.length) {
+    $('issueList').innerHTML = '<div class="empty-state">Nenhuma edição publicada ainda.</div>';
+    return;
+  }
+
+  $('issueList').innerHTML = items.map((issue) => {
+    const cover = getCoverFile(issue);
+    return `
+      <article class="issue-card" data-id="${issue.id}">
+        ${cover ? mediaHtml(cover, 'issue-cover') : '<div class="empty-state">Sem capa</div>'}
+        <div class="issue-header">
+          <span class="issue-tag">${issue.category}</span>
+          <span class="issue-meta">Ed. ${issue.edition}</span>
+        </div>
+        <div>
+          <h3>${issue.title}</h3>
+          <div class="issue-meta">
+            <span>${formatDate(issue.date)}</span>
+            <span>•</span>
+            <span>${issue.files?.length || 0} arquivo(s)</span>
+          </div>
+        </div>
+        <p class="issue-summary">${issue.summary || 'Sem resumo.'}</p>
+        <div class="issue-actions">
+          <button type="button" class="action-btn" data-view-id="${issue.id}">Abrir</button>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  document.querySelectorAll('[data-view-id]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const item = issues.find((it) => it.id === button.dataset.viewId);
+      if (item) openIssueModal(item);
+    });
+  });
+}
+
+function getCoverFile(issue) {
+  const files = issue.files || [];
+  return files.find(file => (file.type || '').startsWith('image/')) || files[0] || null;
+}
+
+function renderCarousel() {
+  const list = [...issues].reverse().slice(0, 5);
+  if (!list.length) {
+    $('carousel').innerHTML = '<div class="empty-state">Nenhuma edição na home.</div>';
+    $('carouselDots').innerHTML = '';
+    return;
+  }
+
+  const current = list[carouselIndex % list.length];
+  const cover = getCoverFile(current);
+
+  $('carousel').innerHTML = `
+    <div class="carousel-item">
+      ${cover ? mediaHtml(cover) : '<div class="empty-state">Sem capa</div>'}
+      <div class="carousel-info">
+        <h3>${current.title}</h3>
+        <div class="carousel-meta">
+          <span>${current.category}</span>
+          <span>•</span>
+          <span>Ed. ${current.edition}</span>
+          <span>•</span>
+          <span>${formatDate(current.date)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  $('carouselDots').innerHTML = list.map((_, index) => {
+    const active = index === (carouselIndex % list.length) ? 'active' : '';
+    return `<div class="carousel-dot ${active}" data-index="${index}"></div>`;
+  }).join('');
+
+  document.querySelectorAll('.carousel-dot').forEach((dot) => {
+    dot.addEventListener('click', () => {
+      carouselIndex = Number(dot.dataset.index);
+      renderCarousel();
+    });
+  });
+}
+
+function openIssueModal(issue) {
+  const files = issue.files || [];
+  const firstFile = files[0];
+
+  $('modalContent').innerHTML = `
+    <div class="modal-content">
+      <div class="modal-preview">
+        ${firstFile ? mediaHtml(firstFile) : '<div class="empty-state">Sem visualização</div>'}
+      </div>
+      <div class="modal-details">
+        <div class="modal-tag">${issue.category}</div>
+        <h3>${issue.title}</h3>
+        <div class="issue-meta">
+          <span>Ed. ${issue.edition}</span>
+          <span>•</span>
+          <span>${formatDate(issue.date)}</span>
+        </div>
+        <p class="modal-summary">${issue.summary || 'Sem resumo.'}</p>
+
+        ${files.length > 1 ? `
+          <div>
+            <h4>Arquivos</h4>
+            <div class="file-list">
+              ${files.map((file, index) => `
+                <button type="button" class="file-choice" data-file-index="${index}">${file.name}</button>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="modal-actions">
+          ${canPublish() ? '<button type="button" id="deleteIssueBtn" class="secondary-btn">Excluir</button>' : ''}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.file-choice').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.fileIndex);
+      const selected = files[idx];
+      const preview = $('modalContent').querySelector('.modal-preview');
+      preview.innerHTML = selected ? mediaHtml(selected) : '<div class="empty-state">Arquivo indisponível</div>';
+    });
+  });
+
+  const deleteBtn = $('deleteIssueBtn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => {
+      if (!confirm('Deseja excluir esta edição?')) return;
+      const updated = issues.filter((item) => item.id !== issue.id);
+      issues = updated;
+      saveIssues(issues);
+      closeModal('view');
+      renderIssueList();
+      renderCarousel();
+    });
+  }
+
   $('viewModal').classList.remove('hidden');
-  $('modalContent').innerHTML=`<div class="modal-content"><div class="modal-preview">${media(files[0])}</div><div class="modal-details"><div class="modal-tag">${issue.category}</div><h3>${issue.title}</h3><div class="issue-meta"><b>Ed. ${issue.edition}</b> · ${niceDate(issue.date)}</div><p class="modal-summary">${issue.summary||''}</p>${files.length>1?`<h4>Arquivos</h4><div class="file-list">${files.map((f,i)=>`<button class="action-btn" onclick="document.querySelector('.modal-preview').innerHTML='${media(f).replace(/'/g,"\\'")}'">${f.name}</button>`).join('')}</div>`:''}<div class="modal-actions"><button class="secondary-btn" id="delBtn">Excluir</button></div></div></div>`;
-  $('delBtn').onclick=async()=>{if(!confirm('Tem certeza?'))return;await remove(issue.id);issues=await getAll();$('viewModal').classList.add('hidden');renderIssues();renderCarousel()}
+  $('viewModal').setAttribute('aria-hidden', 'false');
 }
 
-let selectedFiles=[];
-$('fileInput').onchange=async(e)=>{selectedFiles=await Promise.all([...(e.target.files||[])].map(f=>new Promise(r=>{const rd=new FileReader();rd.onload=()=>r({name:f.name,type:f.type||'',data:rd.result});rd.readAsDataURL(f)})));$('filePreview').className='file-preview';$('filePreview').innerHTML=selectedFiles.length?`<div>${selectedFiles.map(f=>`<div>✓ ${f.name}</div>`).join('')}</div>`:'Nenhum arquivo'};
+function closeModal(name) {
+  const modal = $(name === 'view' ? 'viewModal' : name === 'publish' ? 'publishModal' : 'settingsModal');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
 
-$('issueForm').onsubmit=async(e)=>{e.preventDefault();if(!selectedFiles.length){alert('Anexe um arquivo');return}
-const issue={id:crypto.randomUUID(),title:$('title').value.trim(),edition:$('edition').value.trim(),date:$('date').value,category:$('category').value,summary:$('summary').value.trim(),author:currentUser.username,files:selectedFiles};
-if(!issue.title||!issue.edition||!issue.date){alert('Preencha título, edição e data.');return}
-try{await put(issue);issues=await getAll();renderIssues();renderCarousel();$('issueForm').reset();selectedFiles=[];$('filePreview').innerHTML='Nenhum arquivo';$('fileInput').value='';$('publishModal').classList.add('hidden')}catch(err){alert('Erro ao salvar. Tente arquivos menores.')}};
+function formatDate(dateString) {
+  const date = new Date(dateString + 'T00:00:00');
+  if (Number.isNaN(date.getTime())) return dateString;
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
+}
 
-$('resetDemo').onclick=async()=>{for(const issue of issues)await remove(issue.id);for(const item of demo)await put(item);issues=await getAll();renderIssues();renderCarousel();$('issueForm').reset()};
+function processFiles(fileList) {
+  return Promise.all(Array.from(fileList).map(file => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve({
+        name: file.name,
+        type: file.type || '',
+        data: String(reader.result || '')
+      });
+    };
+    reader.readAsDataURL(file);
+  })));
+}
 
-$('closePublishModal').onclick=()=>$('publishModal').classList.add('hidden');
-$('closeViewModal').onclick=()=>$('viewModal').classList.add('hidden');
-$('closeSettingsModal').onclick=()=>$('settingsModal').classList.add('hidden');
+function renderSelectedFiles() {
+  if (!selectedFiles.length) {
+    $('filePreview').className = 'file-preview empty';
+    $('filePreview').textContent = 'Nenhum arquivo selecionado';
+    return;
+  }
 
-document.querySelectorAll('.modal-overlay').forEach(o=>o.onclick=()=>{
-  if(o.dataset.close==='publish')$('publishModal').classList.add('hidden');
-  if(o.dataset.close==='view')$('viewModal').classList.add('hidden');
-  if(o.dataset.close==='settings')$('settingsModal').classList.add('hidden');
+  $('filePreview').className = 'file-preview';
+  $('filePreview').innerHTML = selectedFiles.map(file => `<div>✓ ${file.name}</div>`).join('');
+}
+
+async function handleFileSelection(event) {
+  selectedFiles = await processFiles(event.target.files || []);
+  renderSelectedFiles();
+}
+
+function updatePublishControls() {
+  const isAllowed = canPublish();
+  $('publishSection').classList.toggle('hidden', !isAllowed);
+}
+
+function handleLogin(event) {
+  event.preventDefault();
+  const username = $('username').value.trim();
+  const role = $('userRole').value;
+
+  if (!username) return;
+
+  const users = getUsers();
+  let user = users.find((u) => u.username.toLowerCase() === username.toLowerCase());
+
+  if (!user) {
+    user = { id: Date.now(), username, role };
+    users.push(user);
+    saveUsers(users);
+  } else {
+    user.role = role;
+    saveUsers(users);
+  }
+
+  currentUser = user;
+  saveCurrentUser(user);
+
+  $('username').value = '';
+  $('userRole').value = 'leitor';
+
+  hideLoginModal();
+  updatePublishControls();
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem(KEY_CURRENT);
+  showLoginModal();
+}
+
+function populateSettings() {
+  if (!currentUser) return;
+  $('settingsUsername').textContent = currentUser.username;
+  $('settingsRole').textContent = currentUser.role === 'admin'
+    ? 'Administrador'
+    : currentUser.role === 'jornalista'
+      ? 'Jornalista'
+      : 'Leitor';
+
+  const prefs = getPrefs();
+  $('themeSelect').value = prefs.theme || 'light';
+  $('fontSizeSelect').value = prefs.fontSize || 'medium';
+}
+
+function bindSettingsEvents() {
+  $('themeSelect').addEventListener('change', () => {
+    const prefs = getPrefs();
+    prefs.theme = $('themeSelect').value;
+    savePrefs(prefs);
+    applyAppearance();
+  });
+
+  $('fontSizeSelect').addEventListener('change', () => {
+    const prefs = getPrefs();
+    prefs.fontSize = $('fontSizeSelect').value;
+    savePrefs(prefs);
+    applyAppearance();
+  });
+
+  $('settingsBtn').addEventListener('click', () => {
+    populateSettings();
+    $('settingsModal').classList.remove('hidden');
+  });
+
+  $('closeSettingsModal').addEventListener('click', () => closeModal('settings'));
+  $('changeUserBtn').addEventListener('click', () => {
+    closeModal('settings');
+    logout();
+  });
+}
+
+function bindGlobalEvents() {
+  $('loginForm').addEventListener('submit', handleLogin);
+  $('logoutBtn').addEventListener('click', logout);
+  $('publishBtn').addEventListener('click', () => $('publishModal').classList.remove('hidden'));
+  $('closePublishModal').addEventListener('click', () => closeModal('publish'));
+  $('closeViewModal').addEventListener('click', () => closeModal('view'));
+  $('fileInput').addEventListener('change', handleFileSelection);
+
+  document.querySelectorAll('.modal-overlay').forEach((overlay) => {
+    overlay.addEventListener('click', () => {
+      const modalType = overlay.dataset.close;
+      if (modalType === 'publish') closeModal('publish');
+      if (modalType === 'view') closeModal('view');
+      if (modalType === 'settings') closeModal('settings');
+    });
+  });
+
+  $('prevCarousel').addEventListener('click', () => {
+    const total = Math.min(issues.length, 5);
+    if (!total) return;
+    carouselIndex = (carouselIndex - 1 + total) % total;
+    renderCarousel();
+  });
+
+  $('nextCarousel').addEventListener('click', () => {
+    const total = Math.min(issues.length, 5);
+    if (!total) return;
+    carouselIndex = (carouselIndex + 1) % total;
+    renderCarousel();
+  });
+
+  $('issueForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    if (!canPublish()) {
+      alert('Você não tem permissão para publicar.');
+      return;
+    }
+
+    const title = $('title').value.trim();
+    const edition = $('edition').value.trim();
+    const date = $('date').value;
+    const summary = $('summary').value.trim();
+
+    if (!title || !edition || !date || !selectedFiles.length) {
+      alert('Preencha pelo menos título, edição, data e selecione um arquivo.');
+      return;
+    }
+
+    const newIssue = {
+      id: crypto.randomUUID(),
+      title,
+      edition,
+      date,
+      category: $('category').value,
+      summary,
+      author: currentUser.username,
+      files: selectedFiles
+    };
+
+    issues.push(newIssue);
+    saveIssues(issues);
+    renderIssueList();
+    renderCarousel();
+    $('issueForm').reset();
+    selectedFiles = [];
+    renderSelectedFiles();
+    closeModal('publish');
+  });
+
+  $('resetDemo').addEventListener('click', () => {
+    issues = [...demoIssues];
+    saveIssues(issues);
+    renderIssueList();
+    renderCarousel();
+    $('issueForm').reset();
+    selectedFiles = [];
+    renderSelectedFiles();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeModal('publish');
+      closeModal('view');
+      closeModal('settings');
+    }
+  });
+}
+
+function mediaHtml(file, className = '') {
+  if (!file || !file.data) return '<div class="empty-state">Arquivo indisponível</div>';
+
+  if ((file.type || '').startsWith('image/')) {
+    return `<img class="${className}" src="${file.data}" alt="${file.name}" />`;
+  }
+
+  if ((file.type || '').startsWith('video/')) {
+    return `<video class="${className}" src="${file.data}" controls playsinline></video>`;
+  }
+
+  if (file.type === 'application/pdf' || (file.name || '').toLowerCase().endsWith('.pdf')) {
+    return `<iframe class="${className}" src="${file.data}" title="${file.name}"></iframe>`;
+  }
+
+  return `<div class="empty-state"><strong>${file.name}</strong><br />Arquivo anexado</div>`;
+}
+
+window.addEventListener('load', () => {
+  setUpInitialData();
+  bindGlobalEvents();
+  bindSettingsEvents();
+  updatePublishControls();
+  renderIssueList();
+  renderCarousel();
+  renderSelectedFiles();
+  populateSettings();
+
+  if (currentUser) {
+    hideLoginModal();
+    updatePublishControls();
+  }
 });
 
-document.onkeydown=e=>{if(e.key==='Escape'){$('publishModal').classList.add('hidden');$('viewModal').classList.add('hidden');$('settingsModal').classList.add('hidden')}};
-
-(async()=>{issues=await getAll();if(!issues.length){for(const item of demo)await put(item);issues=await getAll()}currentUser=loadCurrentUser();const prefs=loadPrefs();applyTheme(prefs);if(currentUser){hideLoginModal();updateUI();renderIssues();renderCarousel()}else{showLoginModal()}})();
+window.logout = logout;
